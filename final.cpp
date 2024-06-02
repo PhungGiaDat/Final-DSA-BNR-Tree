@@ -40,39 +40,58 @@ void DeletePerson(NODE*& pRoot, string name) ;
 
 int main()
 {
-    NODE* FamilyTree;
-    Init(FamilyTree);
-    //nhap thong tin 1 nguoi
-    PERSON x;
-    InputPersonInfo(x);
-    if(AddPerson(FamilyTree,"",x)) cout<<"Them thanh cong";
-    else cout<<"Them khong thanh cong";
+   NODE* familyTree;
+    Init(familyTree);
 
-    //nhap thong tin 1 nguoi
-    InputPersonInfo(x);
-    if(AddPerson(FamilyTree,"Nam",x)) cout<<"Them thanh cong";
-    else cout<<"Them khong thanh cong";
+    // Data Mẫu
+    PERSON person1 = { "John Doe", true, "New York", {1, 1, 1950}, {0, 0, 0}, "Engineer" };
+    PERSON person2 = { "Jane Doe", false, "Los Angeles", {2, 2, 1955}, {0, 0, 0}, "Teacher" };
+    PERSON person3 = { "Alice Doe", false, "Chicago", {3, 3, 1980}, {0, 0, 0}, "Doctor" };
 
-    InputPersonInfo(x);
-    if(AddPerson(FamilyTree,"Thắng",x)) cout<<"Them thanh cong";
-    else cout<<"Them khong thanh cong";
+    AddPerson(familyTree, "", person1); // Thêm người gốc
+    AddPerson(familyTree, "John Doe", person2); // Thêm con
+    AddPerson(familyTree, "John Doe", person3); // Thêm con khác
 
-    InputPersonInfo(x);
-    if(AddPerson(FamilyTree,"Thắng",x)) cout<<"Them thanh cong";
-    else cout<<"Them khong thanh cong";
+    PrintFamily(familyTree);
 
-    InputPersonInfo(x);
-    if(AddPerson(FamilyTree,"Thái",x)) cout<<"Them thanh cong";
-    else cout<<"Them khong thanh cong";
+    // Tìm một người và in ra thế hệ của họ
+    int generation = 1;
+    string searchName;
+    cout << "Enter the name of the person to find: ";
+    cin >> searchName;
+    NODE* foundPerson = FindPerson(familyTree, searchName);
+    if (foundPerson) {
+        cout << "Found person in generation: " << generation << endl;
+        PrintPerson(foundPerson->Key);
+    }
+    else {
+        cout << "Khong tim thay" << endl;
+    }
 
-     InputPersonInfo(x);
-    if(AddPerson(FamilyTree,"",x)) cout<<"Them thanh cong";
-    else cout<<"Them khong thanh cong";
+    // Tính tổng số tuổi của các thành viên còn sống
+    int totalAge = TotalAgeLivingMembers(familyTree);
+    cout << "Tong so tuoi cua cac thanh vien con song: " << totalAge << endl;
 
+    // In ra các thành viên chưa có con
+    cout << "Cac thanh vien chua co con:" << endl;
+    PrintMembersWithoutChildren(familyTree);
 
-    PrintFamily(FamilyTree);
+    // In ra các thành viên thuộc đời thứ N
+    int targetGeneration;
+    cout << "Enter the generation number to list members: ";
+    cin >> targetGeneration;
+    cout << "Cac thanh vien thuoc doi thu " << targetGeneration << ":" << endl;
+    PrintMembersOfGeneration(familyTree, targetGeneration, 1);
+
+    // Xoá bỏ 1 thành viên khỏi cây gia phả
+    string deletePersonName;
+    cout << "Enter the name of the person to delete: ";
+    cin >> deletePersonName;
+    DeletePerson(familyTree, deletePersonName);
+
     return 0;
 }
+
 
 NODE* CreateNode(PERSON x){
     NODE* pNode = new NODE;
@@ -183,6 +202,8 @@ int TotalAgeLivingMembers(NODE* pRoot)
     
     return age += TotalAgeLivingMembers(pRoot->pLeft) + TotalAgeLivingMembers(pRoot->pRight);
 }
+
+
 
 // Câu 5: Duyệt cây gia phả để in ra các thành viên chưa có con
 void PrintMembersWithoutChildren(NODE* pRoot) 
