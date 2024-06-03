@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+#include <vector>
+#include <queue>
 using namespace std;
 
 struct DATE{
@@ -37,20 +39,32 @@ int TotalAgeLivingMembers(NODE* pRoot);
 void PrintMembersWithoutChildren(NODE* pRoot);
 void PrintMembersOfGeneration(NODE* pRoot, int targetGeneration, int currentGeneration); 
 void DeletePerson(NODE*& pRoot, string name) ;
+bool IsMale(PERSON x) {return x.gender == true ? true : false;} // kiểm tra giới tính//
+void BubbleSort(NODE* pRoot,int count);
+int AnalyzeGender(NODE* pRoot,int &malecount,int &femalecount);
 
 int main()
 {
-   NODE* familyTree;
+    NODE* familyTree;
     Init(familyTree);
 
     // Data Mẫu
     PERSON person1 = { "John Doe", true, "New York", {1, 1, 1950}, {0, 0, 0}, "Engineer" };
     PERSON person2 = { "Jane Doe", false, "Los Angeles", {2, 2, 1955}, {0, 0, 0}, "Teacher" };
     PERSON person3 = { "Alice Doe", false, "Chicago", {3, 3, 1980}, {0, 0, 0}, "Doctor" };
+    PERSON person4 = { "Bob Doe", true, "San Francisco", {4, 4, 1985}, {0, 0, 0}, "Lawyer" };
+    PERSON person5 = { "Charlie Doe", true, "Seattle", {5, 5, 2010}, {0, 0, 0}, "Student" };
+    PERSON person6 = { "David Doe", true, "Boston", {6, 6, 2015}, {0, 0, 0}, "Student" };
+    PERSON person7 = { "Eve Doe", false, "Miami", {7, 7, 2020}, {0, 0, 0}, "Student" };
+    PERSON person8 = { "Frank Doe", true, "Houston", {8, 8, 1945}, {1, 7, 2020}, "Student" };
+    PERSON person9 = { "Grace Doe", false, "Dallas", {9, 9, 1940}, {10, 8, 2019}, "Student" };
 
     AddPerson(familyTree, "", person1); // Thêm người gốc
     AddPerson(familyTree, "John Doe", person2); // Thêm con
     AddPerson(familyTree, "John Doe", person3); // Thêm con khác
+    AddPerson(familyTree, "Jane Doe", person4); // Thêm con
+    AddPerson(familyTree, "Jane Doe", person5); // Thêm con khác
+
 
     PrintFamily(familyTree);
 
@@ -82,6 +96,16 @@ int main()
     cin >> targetGeneration;
     cout << "Cac thanh vien thuoc doi thu " << targetGeneration << ":" << endl;
     PrintMembersOfGeneration(familyTree, targetGeneration, 1);
+
+    // Dem so luong nam va nu trong gia pha
+    int malecount; 
+    int femalecount;
+    AnalyzeGender(familyTree,malecount,femalecount);
+    cout << "So luong nam trong gia pha : " << malecount << endl;
+    cout << "So luong nu trong gia pha : "<< femalecount << endl;
+
+
+
 
     // Xoá bỏ 1 thành viên khỏi cây gia phả
     string deletePersonName;
@@ -160,11 +184,11 @@ int AddPerson(NODE* &pRoot,string parentname,PERSON person)
 
 void PrintPerson(PERSON x)
 {
-    cout<<x.name<<endl;
-    cout<<x.gender<<endl;
-    cout<<x.birthPlace<<endl;
-    cout<<2024-x.dob.year<<endl;
-    x.dod.year == 0  ? cout<<"Còn Sống" : cout<<"Đã mất"; // nếu năm chết = NULL thì còn sống còn không thì đã mất//
+    cout<<x.name<<" ";
+    cout<<x.gender<<" ";
+    cout<<x.birthPlace<<" ";
+    cout<<2024-x.dob.year<<" ";
+    x.dod.year == 0  ? cout<<"Còn Sống " : cout<<"Đã mất "; // nếu năm chết = NULL thì còn sống còn không thì đã mất//
     cout<<x.job<<endl;
 }
 
@@ -228,6 +252,35 @@ void PrintMembersOfGeneration(NODE* pRoot, int targetGeneration, int currentGene
     PrintMembersOfGeneration(pRoot->pRight, targetGeneration, currentGeneration + 1);
 }
 
+void BubbleSort()
+{
+    // chưa làm
+}
+
+// Câu 8: Thống kê nam nữ trong gia phả
+int AnalyzeGender(NODE* pRoot,int &malecount,int &femalecount)
+{
+    if(pRoot == NULL) return 0;
+
+
+    if (pRoot->pLeft == NULL && pRoot->pRight == NULL)
+    {
+        if (IsMale(pRoot->Key)) return malecount = 1; 
+        else return femalecount = 1;
+    }
+
+    else
+    {
+        if (IsMale(pRoot->Key))
+        {
+            return malecount = AnalyzeGender(pRoot->pLeft,malecount,femalecount) + AnalyzeGender(pRoot->pRight,malecount,femalecount);
+        }
+        else 
+        {
+            return femalecount = AnalyzeGender(pRoot->pLeft,malecount,femalecount) + AnalyzeGender(pRoot->pRight,malecount,femalecount);
+        }
+    }
+}
 
 // Câu 10:  Xóa bỏ 1 thành viên khỏi cây gia phả
 
@@ -268,3 +321,4 @@ void DeletePerson(NODE*& pRoot, string name)
         DeletePerson(pRoot->pRight, name);
     }
 }
+
