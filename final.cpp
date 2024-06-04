@@ -50,8 +50,7 @@ void OccupationCount(NODE* pRoot,map<string,int> &jobCounts);
 void AnalyzeJob(NODE* pRoot);
 void DeletePerson(NODE*& pRoot, string name) ;
 
-int main()
-{
+int main() {
     NODE* familyTree;
     Init(familyTree);
 
@@ -65,7 +64,7 @@ int main()
     PERSON person7 = { "Charlie Doe", true, "Seattle", {5, 5, 2010}, {0, 0, 0}, "Student" };
     PERSON person8 = { "David Doe", true, "Boston", {6, 6, 2015}, {0, 0, 0}, "Student" };
     PERSON person9 = { "Eve Doe", false, "Miami", {7, 7, 2020}, {0, 0, 0}, "Student" };
-   
+    PERSON person10 = { "Emmy Doe", true, "Houston", {8, 8, 2018}, {0,0,0}, "Student" };
 
     AddPerson(familyTree, "", person1); // Thêm người gốc
     AddPerson(familyTree, "Frank Doe", person2); // Thêm con
@@ -76,32 +75,38 @@ int main()
     AddPerson(familyTree, "Jane Doe", person7); // Thêm con khác
     AddPerson(familyTree, "Alice Doe", person8); // Thêm con khác
     AddPerson(familyTree, "Alice Doe", person9); // Thêm con khác
+    AddPerson(familyTree, "John Doe", person10); // Thêm con khác
 
-
-
+    cout << "------------------------------------------" << endl;
+    // In ra toàn bộ gia phả
     PrintFamily(familyTree);
+    cout << "------------------------------------------" << endl;
 
     // Tìm một người và in ra thế hệ của họ
     int generation = 1;
     string searchName;
     cout << "Enter the name of the person to find: ";
-    cin >> searchName;
+    getline(cin, searchName);
     NODE* foundPerson = FindPerson(familyTree, searchName);
+
     if (foundPerson) {
         cout << "Found person in generation: " << generation << endl;
         PrintPerson(foundPerson->Key);
-    }
-    else {
+    } else {
         cout << "Khong tim thay" << endl;
     }
+    cout << "------------------------------------------" << endl;
 
     // Tính tổng số tuổi của các thành viên còn sống
     int totalAge = TotalAgeLivingMembers(familyTree);
     cout << "Tong so tuoi cua cac thanh vien con song: " << totalAge << endl;
-
+    cout << endl;
+    cout << "------------------------------------------" << endl;
+    
     // In ra các thành viên chưa có con
     cout << "Cac thanh vien chua co con:" << endl;
     PrintMembersWithoutChildren(familyTree);
+    cout << "------------------------------------------" << endl;
 
     // In ra các thành viên thuộc đời thứ N
     int targetGeneration;
@@ -109,27 +114,35 @@ int main()
     cin >> targetGeneration;
     cout << "Cac thanh vien thuoc doi thu " << targetGeneration << ":" << endl;
     PrintMembersOfGeneration(familyTree, targetGeneration, 1);
+    cout << "------------------------------------------" << endl;
 
     // Dem so luong nam va nu trong gia pha
-    int malecount; 
-    int femalecount;
-    AnalyzeGender(familyTree,malecount,femalecount);
-    cout << "So luong nam trong gia pha : " << malecount << endl;
-    cout << "So luong nu trong gia pha : "<< femalecount << endl;
-
+    int maleCount = 0; 
+    int femaleCount = 0;
+    AnalyzeGender(familyTree, maleCount, femaleCount);
+    cout << "So luong nam trong gia pha : " << maleCount << endl;
+    cout << "So luong nu trong gia pha : " << femaleCount << endl;
+    cout << "------------------------------------------" << endl;
 
     // In ra các thành viên còn sống và sắp xếp theo năm sinh
+    cout << "Danh sach cac thanh vien con song va sap xep theo tuoi:" << endl;
     PrintLivingMembers(familyTree);
+    cout << "------------------------------------------" << endl;
 
     // Thống kê số lượng nghe nghiệp trong gia phả
+    cout << "Thong ke so luong nghe nghiep trong gia pha:" << endl;
     AnalyzeJob(familyTree);
-
+    cout << "------------------------------------------" << endl;
 
     // Xoá bỏ 1 thành viên khỏi cây gia phả
     string deletePersonName;
     cout << "Enter the name of the person to delete: ";
-    cin >> deletePersonName;
+    cin.ignore();
+    getline(cin, deletePersonName);
     DeletePerson(familyTree, deletePersonName);
+    cout << "------------------------------------------" << endl;
+    cout << "Sau khi xóa thành viên " << deletePersonName << ":" << endl;
+    PrintFamily(familyTree);
 
     return 0;
 }
@@ -149,12 +162,12 @@ void Init(NODE* &pRoot){
 
 void InputPersonInfo(PERSON &x)
 {
-    cin>>x.name;
-    cin>>x.gender;
-    cin>>x.birthPlace;
-    cin>>x.dob.day>>x.dob.month>>x.dob.year;
-    cin>>x.dod.day>>x.dod.month>>x.dod.year;
-    cin>>x.job;
+    cout<<"Put in person name"; getline(cin,x.name);
+    cout<<"Put in gender True / False"; cin>>x.gender;
+    cout<<"Put in birth place"; cin>>x.birthPlace;
+    cout<<"Put in day,month,year of birth"; cin>>x.dob.day>>x.dob.month>>x.dob.year;
+    cout<<"Put in day,month,year of death"; cin>>x.dod.day>>x.dod.month>>x.dod.year;
+    cout<<"Put in job"; cin>>x.job;
 }
 
 // hàm tìm tên cha của một người hoặc node cha của 1 node//
@@ -163,7 +176,6 @@ NODE* SearchParent (NODE* pRoot, string name)
     if(pRoot == NULL) return NULL;
     if(pRoot->Key.name == name) // NẾU TÌM THẤY TÊN NODE CHA
     {
-        cout<<pRoot->Key.name;
         return pRoot; //TRẢ VỀ NODE CHA
     }
     NODE* pNode = NULL; // khởi tạo con trỏ node để chạy//
@@ -227,7 +239,7 @@ void PrintFamily(NODE* pRoot)
 NODE* FindPerson(NODE* pRoot,string name)
 {
     if(pRoot == NULL) return NULL;
-    if(pRoot->Key.name == name) return pRoot;  else cout<<"Khong Tim thay";// tìm thấy //
+    if(pRoot->Key.name == name) return pRoot;// tìm thấy //
     NODE* pNode = NULL; // khởi tạo con trỏ node để chạy//
     if(pNode == NULL) pNode = FindPerson(pRoot->pLeft, name);
     if(pNode == NULL) pNode = FindPerson(pRoot->pRight, name);
@@ -240,9 +252,7 @@ int TotalAgeLivingMembers(NODE* pRoot)
     if (pRoot == NULL) return 0;
 
     int age = 0;
-    if (pRoot->Key.dod.year == 0) {
-        age = 2024 - pRoot->Key.dob.year;
-    }
+    if (pRoot->Key.dod.year == 0) age = 2024 - pRoot->Key.dob.year;
     
     return age += TotalAgeLivingMembers(pRoot->pLeft) + TotalAgeLivingMembers(pRoot->pRight);
 }
@@ -327,7 +337,6 @@ void PrintLivingMembers(NODE* pRoot)
     vector<PERSON> livingMembers; // khai báo một mảng động vector với kiểu dữ liệu PERSON
     getLivingMembers(pRoot, livingMembers);
     BubbleSort(livingMembers);
-    cout << "Danh sách các thành viên còn sống và sắp xếp theo năm sinh:" << endl;
     // vòng lặp for each  : cho mỗi phần tử member kiểu dữ liệu PERSON trong mảng livingMembers
     // tương tự khai báo hằng số const nhằm đảm bảo dữ liệu không thay đổi
     for (const PERSON& member : livingMembers)  
@@ -393,7 +402,6 @@ void AnalyzeJob(NODE* pRoot)
     // Khai báo một biến để chứa nghề có số lượng lớn nhất
     pair<string,int> HighestJob; 
 
-    cout << "Thong ke so luong nghe nghiep trong gia pha:" << endl;
     // Duyệt vòng lặp Với mỗi biến job trong dictionary maxJob
     // khai báo một biến job kiểu dữ liệu pair<string,int> trong maxJob
     // pair là một cặp giá trị key và value trong dictionary NHƯNG CHỈ LÀ 1 BIẾN ĐƠN
@@ -415,6 +423,7 @@ void AnalyzeJob(NODE* pRoot)
 
 void DeletePerson(NODE*& pRoot, string name) 
 {
+    NODE* temp;
     if (pRoot == NULL) return;
 
     if (pRoot->Key.name == name) {
@@ -425,19 +434,19 @@ void DeletePerson(NODE*& pRoot, string name)
         }
         // Trường hợp nút chỉ có nhánh trái
         else if (pRoot->pRight == NULL) {
-            NODE* temp = pRoot;
+            temp = pRoot;
             pRoot = pRoot->pLeft;
             delete temp;
         }
         // Trường hợp nút chỉ có nhánh phải
         else if (pRoot->pLeft == NULL) {
-            NODE* temp = pRoot;
+            temp = pRoot;
             pRoot = pRoot->pRight;
             delete temp;
         }
         // Trường hợp nút có cả hai nhánh
         else {
-            NODE* temp = pRoot->pRight;
+            temp = pRoot->pRight;
             while (temp->pLeft != NULL) {
                 temp = temp->pLeft;
             }
