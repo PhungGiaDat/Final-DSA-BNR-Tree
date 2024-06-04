@@ -3,6 +3,8 @@
 #include <ctime>
 #include <vector>
 #include <queue>
+#include <map>
+#include <utility>
 using namespace std;
 
 struct DATE{
@@ -38,10 +40,15 @@ NODE* FindPerson(NODE* pRoot, string name);
 int TotalAgeLivingMembers(NODE* pRoot);
 void PrintMembersWithoutChildren(NODE* pRoot);
 void PrintMembersOfGeneration(NODE* pRoot, int targetGeneration, int currentGeneration); 
-void DeletePerson(NODE*& pRoot, string name) ;
 bool IsMale(PERSON x) {return x.gender == true ? true : false;} // kiểm tra giới tính//
-void BubbleSort(NODE* pRoot,int count);
+void BubbleSort(vector<PERSON> &array);
+bool CompareAge(const PERSON& a, const PERSON& b);
+void getLivingMembers(NODE* pRoot, vector<PERSON> &members);
+void PrintLivingMembers(NODE* pRoot);
 int AnalyzeGender(NODE* pRoot,int &malecount,int &femalecount);
+void OccupationCount(NODE* pRoot,map<string,int> &jobCounts);
+void AnalyzeJob(NODE* pRoot);
+void DeletePerson(NODE*& pRoot, string name) ;
 
 int main()
 {
@@ -49,21 +56,27 @@ int main()
     Init(familyTree);
 
     // Data Mẫu
-    PERSON person1 = { "John Doe", true, "New York", {1, 1, 1950}, {0, 0, 0}, "Engineer" };
-    PERSON person2 = { "Jane Doe", false, "Los Angeles", {2, 2, 1955}, {0, 0, 0}, "Teacher" };
-    PERSON person3 = { "Alice Doe", false, "Chicago", {3, 3, 1980}, {0, 0, 0}, "Doctor" };
-    PERSON person4 = { "Bob Doe", true, "San Francisco", {4, 4, 1985}, {0, 0, 0}, "Lawyer" };
-    PERSON person5 = { "Charlie Doe", true, "Seattle", {5, 5, 2010}, {0, 0, 0}, "Student" };
-    PERSON person6 = { "David Doe", true, "Boston", {6, 6, 2015}, {0, 0, 0}, "Student" };
-    PERSON person7 = { "Eve Doe", false, "Miami", {7, 7, 2020}, {0, 0, 0}, "Student" };
-    PERSON person8 = { "Frank Doe", true, "Houston", {8, 8, 1945}, {1, 7, 2020}, "Student" };
-    PERSON person9 = { "Grace Doe", false, "Dallas", {9, 9, 1940}, {10, 8, 2019}, "Student" };
+    PERSON person1 = { "Frank Doe", true, "Houston", {8, 8, 1945}, {1, 7, 2020}, "Doctor" };
+    PERSON person2 = { "Grace Doe", false, "Dallas", {9, 9, 1940}, {10, 8, 2019}, "Teacher" };
+    PERSON person3 = { "John Doe", true, "New York", {1, 1, 1950}, {0, 0, 0}, "Engineer" };
+    PERSON person4 = { "Jane Doe", false, "Los Angeles", {2, 2, 1955}, {0, 0, 0}, "Teacher" };
+    PERSON person5 = { "Alice Doe", false, "Chicago", {3, 3, 1980}, {0, 0, 0}, "Doctor" };
+    PERSON person6 = { "Bob Doe", true, "San Francisco", {4, 4, 1985}, {0, 0, 0}, "Lawyer" };
+    PERSON person7 = { "Charlie Doe", true, "Seattle", {5, 5, 2010}, {0, 0, 0}, "Student" };
+    PERSON person8 = { "David Doe", true, "Boston", {6, 6, 2015}, {0, 0, 0}, "Student" };
+    PERSON person9 = { "Eve Doe", false, "Miami", {7, 7, 2020}, {0, 0, 0}, "Student" };
+   
 
     AddPerson(familyTree, "", person1); // Thêm người gốc
-    AddPerson(familyTree, "John Doe", person2); // Thêm con
-    AddPerson(familyTree, "John Doe", person3); // Thêm con khác
-    AddPerson(familyTree, "Jane Doe", person4); // Thêm con
-    AddPerson(familyTree, "Jane Doe", person5); // Thêm con khác
+    AddPerson(familyTree, "Frank Doe", person2); // Thêm con
+    AddPerson(familyTree, "Frank Doe", person3); // Thêm con khác
+    AddPerson(familyTree, "Grace Doe", person4); // Thêm con
+    AddPerson(familyTree, "Grace Doe", person5); // Thêm con khác
+    AddPerson(familyTree, "Jane Doe", person6); // Thêm con khác
+    AddPerson(familyTree, "Jane Doe", person7); // Thêm con khác
+    AddPerson(familyTree, "Alice Doe", person8); // Thêm con khác
+    AddPerson(familyTree, "Alice Doe", person9); // Thêm con khác
+
 
 
     PrintFamily(familyTree);
@@ -105,6 +118,11 @@ int main()
     cout << "So luong nu trong gia pha : "<< femalecount << endl;
 
 
+    // In ra các thành viên còn sống và sắp xếp theo năm sinh
+    PrintLivingMembers(familyTree);
+
+    // Thống kê số lượng nghe nghiệp trong gia phả
+    AnalyzeJob(familyTree);
 
 
     // Xoá bỏ 1 thành viên khỏi cây gia phả
@@ -140,7 +158,8 @@ void InputPersonInfo(PERSON &x)
 }
 
 // hàm tìm tên cha của một người hoặc node cha của 1 node//
-NODE* SearchParent (NODE* pRoot, string name){
+NODE* SearchParent (NODE* pRoot, string name)
+{
     if(pRoot == NULL) return NULL;
     if(pRoot->Key.name == name) // NẾU TÌM THẤY TÊN NODE CHA
     {
@@ -190,6 +209,7 @@ void PrintPerson(PERSON x)
     cout<<2024-x.dob.year<<" ";
     x.dod.year == 0  ? cout<<"Còn Sống " : cout<<"Đã mất "; // nếu năm chết = NULL thì còn sống còn không thì đã mất//
     cout<<x.job<<endl;
+    cout<<endl;
 }
 
 void PrintFamily(NODE* pRoot)
@@ -252,10 +272,71 @@ void PrintMembersOfGeneration(NODE* pRoot, int targetGeneration, int currentGene
     PrintMembersOfGeneration(pRoot->pRight, targetGeneration, currentGeneration + 1);
 }
 
-void BubbleSort()
+// hàm so sánh năm sinh,tháng,ngày và xác định còn sống hay đã chết
+bool CompareAge(const PERSON& a, const PERSON& b) // khai báo hằng số nhằm đảm bảo dữ liệu không thay đổi khi chạy vòng lặp Bubble Sort
 {
-    // chưa làm
+    if (!a.dod.year && !b.dod.year) // Nếu cả 2 còn sống
+    {
+        // nếu năm sinh khác nhau
+        if(a.dob.year != b.dob.year) return a.dob.year < b.dob.year;
+        // nếu khác tháng
+        if(a.dob.month != b.dob.month) return a.dob.month < b.dob.month;
+        return a.dob.day < b.dob.day;
+    }
+    else
+    {
+        if(!a.dod.year || !b.dod.year) return a.dod.year > b.dod.year;
+        return a.dod.year < b.dod.year;
+    }
 }
+
+// hàm sắp xếp BubbleSort
+void BubbleSort(vector<PERSON> &array)
+{
+    int size = array.size();
+    for (int i = 0 ; i < size - 1 ; i++ )  
+    {
+        for (int j = 0 ; j < size - i - 1 ; j++)
+        {
+            if (CompareAge(array[j],array[j+1]))
+            {
+                PERSON temp = array[j];
+                array[j] = array[j+1];
+                array[j+1] = temp;
+            }
+        
+        }
+    }
+}
+
+// hàm lấy ra các thành viên còn sống và cho vào mảng động
+void getLivingMembers(NODE* pRoot, vector<PERSON> &members)
+{
+    if (pRoot == NULL) return;
+    // push_back là hàm thêm vào cuối mảng
+    // hay là phương thức thêm vào mảng động vì mảng động không cố định kích thước nên phải thêm vào cuối mảng 
+    if (pRoot->Key.dod.year == 0) members.push_back(pRoot->Key); 
+
+    getLivingMembers(pRoot->pLeft, members);
+    getLivingMembers(pRoot->pRight, members);
+}
+
+// câu 7 In ra các thành viên và sắp xếp theo năm,tháng ,ngày sinh
+void PrintLivingMembers(NODE* pRoot)
+{
+    vector<PERSON> livingMembers; // khai báo một mảng động vector với kiểu dữ liệu PERSON
+    getLivingMembers(pRoot, livingMembers);
+    BubbleSort(livingMembers);
+    cout << "Danh sách các thành viên còn sống và sắp xếp theo năm sinh:" << endl;
+    // vòng lặp for each  : cho mỗi phần tử member kiểu dữ liệu PERSON trong mảng livingMembers
+    // tương tự khai báo hằng số const nhằm đảm bảo dữ liệu không thay đổi
+    for (const PERSON& member : livingMembers)  
+    {
+        PrintPerson(member);
+    }
+}
+
+
 
 // Câu 8: Thống kê nam nữ trong gia phả
 int AnalyzeGender(NODE* pRoot,int &malecount,int &femalecount)
@@ -281,6 +362,54 @@ int AnalyzeGender(NODE* pRoot,int &malecount,int &femalecount)
         }
     }
 }
+
+
+// Hàm sử dụng map để lấy ra một dictionary các phần tử trùng lặp với key là job và value là số lần trùng lặp
+void OccupationCount(NODE* pRoot,map<string,int> &jobCounts)
+{
+    if(pRoot == NULL) return;
+
+    // nếu chỉ có gốc thì trả về 1
+    if (pRoot->pLeft == NULL && pRoot->pRight == NULL)
+    {
+        jobCounts[pRoot->Key.job]++;
+    }
+
+    // ngược lại tăng dần số lần trùng lặp
+    else
+    {
+        jobCounts[pRoot->Key.job]++;
+        OccupationCount(pRoot->pLeft,jobCounts);
+        OccupationCount(pRoot->pRight,jobCounts);
+    }
+}
+
+// Câu 9 In ra nghề có thành viên cao nhất
+void AnalyzeJob(NODE* pRoot)
+{
+    map<string,int> maxJob;
+    OccupationCount(pRoot,maxJob);
+
+    // Khai báo một biến để chứa nghề có số lượng lớn nhất
+    pair<string,int> HighestJob; 
+
+    cout << "Thong ke so luong nghe nghiep trong gia pha:" << endl;
+    // Duyệt vòng lặp Với mỗi biến job trong dictionary maxJob
+    // khai báo một biến job kiểu dữ liệu pair<string,int> trong maxJob
+    // pair là một cặp giá trị key và value trong dictionary NHƯNG CHỈ LÀ 1 BIẾN ĐƠN
+    for (const pair<string,int>& job : maxJob)
+    {
+        cout << job.first << ": " << job.second << endl;
+        // hàm kiểm tra nghề có số lượng lớn nhất
+        // second tương tự cho value trong dictionary
+        if (job.second > HighestJob.second)
+        {
+            HighestJob = job;
+        }
+    }
+    cout << "Nghe co so luong thanh vien nhieu nhat: " << HighestJob.first << ":" << HighestJob.second << endl;
+}
+
 
 // Câu 10:  Xóa bỏ 1 thành viên khỏi cây gia phả
 
