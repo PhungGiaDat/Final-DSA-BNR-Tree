@@ -28,6 +28,9 @@ struct NODE{
     NODE* pRight;
 };
 
+// define một queue để lưu trữ các node với dữ liệu là PERSON
+queue<PERSON> queueNode;
+
 
 NODE* CreateNode(PERSON x);
 void Init(NODE* &pRoot);
@@ -36,7 +39,10 @@ NODE* SearchParent(NODE* pRoot, string name);
 int AddPerson(NODE* &pRoot, string parentName, PERSON x);
 void PrintFamily(NODE* pRoot);
 void PrintPerson(PERSON x);
-NODE* FindPerson(NODE* pRoot, string name);
+int GetMax(int a, int b) { return a>b?a:b; }
+int GetHeight(NODE* pRoot);
+void GetNodeByDepth(NODE* pRoot, int c, int d);
+void FindPerson(NODE* pRoot, string name, int &generation,PERSON & foundPerson);
 int TotalAgeLivingMembers(NODE* pRoot);
 void PrintMembersWithoutChildren(NODE* pRoot);
 void PrintMembersOfGeneration(NODE* pRoot, int targetGeneration, int currentGeneration); 
@@ -83,17 +89,19 @@ int main() {
     cout << "------------------------------------------" << endl;
 
     // Tìm một người và in ra thế hệ của họ
-    int generation = 1;
     string searchName;
     cout << "Enter the name of the person to find: ";
     getline(cin, searchName);
-    NODE* foundPerson = FindPerson(familyTree, searchName);
+    int generation;
+    PERSON foundPerson;
 
-    if (foundPerson) {
-        cout << "Found person in generation: " << generation << endl;
-        PrintPerson(foundPerson->Key);
+    FindPerson(familyTree, searchName, generation, foundPerson);
+
+    if (generation != -1){
+        cout << "Thế hệ của " << searchName << " là: " << generation << endl;
+        PrintPerson(foundPerson);
     } else {
-        cout << "Khong tim thay" << endl;
+        cout << "Khong Tim thay" << endl;
     }
     cout << "------------------------------------------" << endl;
 
@@ -215,35 +223,61 @@ int AddPerson(NODE* &pRoot,string parentname,PERSON person)
 
 void PrintPerson(PERSON x)
 {
-    cout<<x.name<<" ";
-    cout<<x.gender<<" ";
-    cout<<x.birthPlace<<" ";
-    cout<<2024-x.dob.year<<" ";
-    x.dod.year == 0  ? cout<<"Còn Sống " : cout<<"Đã mất "; // nếu năm chết = NULL thì còn sống còn không thì đã mất//
-    cout<<x.job<<endl;
+    cout<<"Name : "<<x.name<<" ";
+    cout<<"Gender : "<<x.gender<<" ";
+    cout<<"Place of Birth : "<<x.birthPlace<<" ";
+    cout<<"Age : "<<2024-x.dob.year<<" ";
+    x.dod.year == 0  ? cout<<"Alive : " : cout<<"Dead : "; // nếu năm chết = NULL thì còn sống còn không thì đã mất//
+    cout<<"Job : "<<x.job<<endl;
     cout<<endl;
 }
 
 void PrintFamily(NODE* pRoot)
-{
+{ 
+    // khởi tạo thế hệ đầu tiên//
     if(pRoot != NULL) // điều kiện cũng như điểm dừng cho đệ quy // nếu pRoot = NULL thì dừng lại
     {
         PrintPerson(pRoot->Key); // vì pRoot key là dữ liệu PERSON nên không cần khai báo 1 biến khác
-        PrintFamily(pRoot->pLeft); // đi sang trái 
+        PrintFamily(pRoot->pLeft); // đi sang trái ,tăng
         PrintFamily(pRoot->pRight); // tương tự đi sang phải nhờ đệ quy
     }
     // đệ quy sẽ dừng khi pRoot = NULL
 }
 
+// hàm lấy chiều cao
+int GetHeight(NODE* pRoot){
+    if(pRoot == NULL) return 0;
+    return GetMax(GetHeight(pRoot->pLeft)+1,GetHeight(pRoot->pRight)+1);
+}
 
-NODE* FindPerson(NODE* pRoot,string name)
+// hàm lấy node theo độ sâu hay chiều sâu của cây
+void GetNodeByDepth(NODE* pRoot, int c, int d){
+    if(pRoot == NULL) return;
+    if(c == d) {
+        queueNode.push(pRoot->Key);
+    }
+    else{
+        GetNodeByDepth(pRoot->pLeft,c+1,d);
+        GetNodeByDepth(pRoot->pRight,c+1,d);
+    }
+}
+
+void FindPerson(NODE* pRoot, string name, int &generation,PERSON & foundPerson) 
 {
-    if(pRoot == NULL) return NULL;
-    if(pRoot->Key.name == name) return pRoot;// tìm thấy //
-    NODE* pNode = NULL; // khởi tạo con trỏ node để chạy//
-    if(pNode == NULL) pNode = FindPerson(pRoot->pLeft, name);
-    if(pNode == NULL) pNode = FindPerson(pRoot->pRight, name);
-    return pNode;
+    int height = GetHeight(pRoot);
+    for (int i = 0; i < height; i++) {
+        GetNodeByDepth(pRoot, 0, i);
+        while (!queueNode.empty()) {
+            PERSON x = queueNode.front();
+            queueNode.pop();
+            if (x.name == name) {
+                generation = i;
+                foundPerson = x;
+                return; // nếu tìm thấy thì trả về không chạy tiếp
+            }
+        }
+    }
+    generation = - 1; // nếu không tìm thấy thì thê hệ bằng -1 
 }
 
 // Câu 4: Tính tổng số tuổi của các thành viên còn sống trong gia phả
